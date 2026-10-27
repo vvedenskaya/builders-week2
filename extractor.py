@@ -25,16 +25,33 @@ def to_iso(match):
 
 
 def extract_event_date(text):
-    matches = list(re.finditer(DATE_PATTERN, text))
+    """Return the event date as 'YYYY-MM-DD', or None if the notice has no event date."""
+    deadline_words = ["rsvp", "deadline", "presale", "pre-sale", "lottery", "register",
+                      "registration", "sign up", "signup", "tickets", "on sale", "due", "by"]
+    event_words = ["doors", "show", "event", "concert", "live", "performance",
+                   "takes place", "starts", "begins", "party", "festival"]
 
-    for match in matches:
-        context = text[max(0, match.start() - 50):match.start()].lower()
+    deadline_re = re.compile(r"\b(" + "|".join(map(re.escape, deadline_words)) + r")\b")
+    event_re = re.compile(r"\b(" + "|".join(map(re.escape, event_words)) + r")\b")
 
-        if "doors open" in context:
-            return to_iso(match)
+    fallback = None
+    prev_end = 0
 
-    return None
+    for match in re.finditer(DATE_PATTERN, text):
+        # The words leading up to this date: since the previous date,
+        # and only within the current sentence.
+        before = text[prev_end:match.start()].lower()
+        before = re.split(r"[.!?;]\s", before)[-1]
+        prev_end = match.end()
 
+        if deadline_re.search(before):
+            continue                      # an RSVP/presale date, skip it
+        if event_re.search(before):
+            return to_iso(match)          # clearly the event
+        if fallback is None:
+            fallback = match              # unlabeled, keep as a backup
+
+    return to_iso(fallback) if fallback else None
 
 if __name__ == "__main__":
     print("Event date:", extract_event_date(NOTICE))
