@@ -25,13 +25,14 @@ def to_iso(match):
 
 
 def extract_event_date(text):
-    """Return the event date as 'YYYY-MM-DD', or None if the notice has no event date.
+    matches = list(re.finditer(DATE_PATTERN, text))
 
-    BUG: this returns the first date in the text, even when that date is a deadline.
-    """
-    match = re.search(DATE_PATTERN, text)
-    if match:
-        return to_iso(match)
+    for match in matches:
+        context = text[max(0, match.start() - 50):match.start()].lower()
+
+        if "doors open" in context:
+            return to_iso(match)
+
     return None
 
 
