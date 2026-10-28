@@ -17,9 +17,9 @@ import re
 
 ATTEMPTING = True
 
-def has_word(text, word):
-    """Check whether a complete word appears in text."""
-    return re.search(r"\b" + re.escape(word) + r"\b", text) is not None
+def has_word(message, word):
+    pattern = r"\b" + re.escape(word) + r"\b"
+    return re.search(pattern, message) is not None
 
 
 def route(message):
@@ -28,7 +28,7 @@ def route(message):
 
     # 1. Check high-risk requests first
     human_words = [
-        "hurt", "injured", "injury", "emergency",
+        "hurt", "injured", "injury", "emergency","harassing", "harassment",
         "unsafe", "charged", "refund", "payment",
         "lost my id", "without id", "exception",
     ]
@@ -39,11 +39,12 @@ def route(message):
 
     # 2. Check simple factual questions
     rules_words = [
-        "doors", "door time", "curfew",
-        "21+", "age limit", "event date",
-        "what date", "what time",
+        ""doors", "curfew", "date",
+        "age", "end",
     ]
-
+    if "21+" in message:
+        return "rules"
+        
     for word in rules_words:
         if has_word(message, word):
             return "rules"
