@@ -39,7 +39,7 @@ def route(message):
 
     # 2. Check simple factual questions
     rules_words = [
-        ""doors", "curfew", "date",
+        "doors", "curfew", "date",
         "age", "end",
     ]
     if "21+" in message:
