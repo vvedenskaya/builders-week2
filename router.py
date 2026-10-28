@@ -13,23 +13,44 @@ Step 2: rewrite route() until all router tests pass.
 See the report any time with:  python router.py
 """
 
-ATTEMPTING = False
+import re
 
-INBOX = [
-    "What time do doors open?",
-    "Is this 21+?",
-    "When is curfew?",
-    "What's the vibe, more techno or house?",
-    "Write a hype caption for my group chat",
-    "I got hurt near the doors and need help",
-    "I was charged twice for my ticket",
-    "I lost my ID, can you let me in anyway?",
-]
+ATTEMPTING = True
+
+def has_word(text, word):
+    """Check whether a complete word appears in text."""
+    return re.search(r"\b" + re.escape(word) + r"\b", text) is not None
 
 
 def route(message):
-    """Return "rules", "model", or "human" for one inbox message."""
+    """Return 'rules', 'model', or 'human'."""
+    message = message.lower()
+
+    # 1. Check high-risk requests first
+    human_words = [
+        "hurt", "injured", "injury", "emergency",
+        "unsafe", "charged", "refund", "payment",
+        "lost my id", "without id", "exception",
+    ]
+
+    for word in human_words:
+        if has_word(message, word):
+            return "human"
+
+    # 2. Check simple factual questions
+    rules_words = [
+        "doors", "door time", "curfew",
+        "21+", "age limit", "event date",
+        "what date", "what time",
+    ]
+
+    for word in rules_words:
+        if has_word(message, word):
+            return "rules"
+
+    # 3. Everything else goes to the model
     return "model"
+
 
 
 if __name__ == "__main__":
